@@ -1,12 +1,11 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-
 #include "MovieInfo.h"
-
+#include <MetaStuff/Meta.h>
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 struct Person {
     // add this if you want to register private members:
@@ -45,8 +44,6 @@ struct Person {
     float salary;
     std::unordered_map<std::string, std::vector<MovieInfo>> favouriteMovies;
 };
-
-#include <Meta.h>
 
 namespace meta {
 

@@ -1,14 +1,12 @@
-#include <iostream>
-
-#include <json.hpp>
 #include "JsonCast.h"
-
 #include "Person.h"
+#include <MetaStuff/Meta.h>
+#include <iomanip>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-class Unregistered
-{ };
+class Unregistered {};
 
-#include <Meta.h>
 
 void printSeparator()
 {

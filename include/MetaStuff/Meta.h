@@ -47,7 +47,7 @@ struct type_list
     template <std::size_t N>
     using type = std::tuple_element_t<N, std::tuple<Args...>>;
     using indices = std::index_sequence_for<Args...>;
-    static const size_t size = sizeof...(Args);
+    static const std::size_t size = sizeof...(Args);
 };
 
 namespace meta

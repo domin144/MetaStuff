@@ -1,13 +1,11 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-
-#include <json.hpp>
-
-#include <Meta.h>
 #include "StringCast.h"
+#include <MetaStuff/Meta.h>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 using json = nlohmann::json;
 

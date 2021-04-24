@@ -1,5 +1,7 @@
 #include "StringCast.h"
 
+#include <stdexcept>
+
 std::string castToString(const bool& value)
 {
     return value ? "true" : "false";
@@ -30,6 +32,7 @@ bool fromString(const std::string& valueStr)
     } else if (valueStr == "false") {
         return false;
     }
+    throw std::runtime_error("invalid string for type bool");
 }
 
 template <>

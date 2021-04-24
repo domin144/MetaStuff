@@ -1,13 +1,12 @@
 #pragma once
 
+#include <MetaStuff/Meta.h>
 #include <string>
 
 struct MovieInfo {
     std::string name;
     float rating;
 };
-
-#include <Meta.h>
 
 namespace meta {
 
