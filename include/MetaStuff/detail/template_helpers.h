@@ -1,22 +1,16 @@
 // Various useful template stuff
 // thanks to Vittorio Romeo and other people who came up with this stuff
 
+#include <utility>
+
 #pragma once
 
 namespace meta {
 namespace detail {
 
-// for_each_arg - call f for each argument from pack
-template <typename F, typename... Args>
-void for_each_arg(F&& f, Args&&... args);
-
 // for_each_arg - call f for each element from tuple
-template <typename F, typename TupleT>
-void for_tuple(F&& f, TupleT&& tuple);
-
-// overload for empty tuple which does nothing
-template <typename F>
-void for_tuple(F&& f, const std::tuple<>& tuple);
+template <typename F, typename ...Members>
+void for_tuple(F&& f, const std::tuple<Members...>& tuple);
 
 // calls F if condition is true
 // this is useful for templated lambdas, because they won't be

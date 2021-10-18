@@ -36,8 +36,9 @@ auto registerMembers<YourClass>()
 #pragma warning (disable : 4396) // silly VS warning about inline friend stuff...
 #endif
 
-#include <type_traits>
+#include <string_view>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 // type_list is array of types
@@ -54,11 +55,11 @@ namespace meta
 {
 
 template <typename... Args>
-auto members(Args&&... args);
+constexpr auto members(Args&&... args);
 
 // function used for registration of classes by user
 template <typename Class>
-inline auto registerMembers();
+constexpr auto registerMembers();
 
 // function used for registration of class name by user
 template <typename Class>
@@ -74,32 +75,15 @@ constexpr std::size_t getMemberCount();
 
 // returns std::tuple of Members
 template <typename Class>
-const auto& getMembers();
+constexpr auto getMembers();
 
 // Check if class has registerMembers<T> specialization (has been registered)
 template <typename Class>
 constexpr bool isRegistered();
 
-// Check if Class has non-default ctor registered
-template <typename Class>
-constexpr bool ctorRegistered();
-
-template <typename T>
-struct constructor_args {
-    using types = type_list<>;
-};
-
-template <typename T>
-using constructor_arguments = typename constructor_args<T>::types;
-
-// Check if user registered non default constructor
-template <typename Class>
-constexpr bool ctorRegistered();
-
 // Check if class T has member
 template <typename Class>
-bool hasMember(const char* name);
-
+constexpr bool hasMember(std::string_view name);
 
 template <typename Class, typename F,
     typename = std::enable_if_t<isRegistered<Class>()>>
@@ -113,16 +97,25 @@ void doForAllMembers(F&& f);
 
 // Do F for member named 'name' with type T. It's important to pass correct type of the member
 template <typename Class, typename T, typename F>
-void doForMember(const char* name, F&& f);
+auto doForMember(std::string_view name, F&& f);
+
+template <typename T, typename Class>
+T& accessMember(Class& obj, const std::string_view name);
+
+template <typename T, typename Class>
+const T& accessMember(const Class& obj, const std::string_view name);
 
 // Get value of the member named 'name'
 template <typename T, typename Class>
-T getMemberValue(Class& obj, const char* name);
+T getMemberValue(Class& obj, std::string_view);
 
 // Set value of the member named 'name'
-template <typename T, typename Class, typename V,
+template <
+    typename T,
+    typename Class,
+    typename V,
     typename = std::enable_if_t<std::is_constructible<T, V>::value>>
-void setMemberValue(Class& obj, const char* name, V&& value);
+void setMemberValue(Class& obj, std::string_view name, V&& value);
 
 }
 

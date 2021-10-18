@@ -20,9 +20,9 @@ int main()
     person.salary = 3.50f;
     person.name = "Alex"; // I'm a person!
 
-    person.favouriteMovies["Nostalgia Critic"] = { MovieInfo{ "The Room", 8.5f } };
-    person.favouriteMovies["John Tron"] = { MovieInfo{ "Goosebumps", 10.0f },
-        MovieInfo{ "Talking Cat", 9.0f } };
+//    person.favouriteMovies["Nostalgia Critic"] = { MovieInfo{ "The Room", 8.5f } };
+//    person.favouriteMovies["John Tron"] = { MovieInfo{ "Goosebumps", 10.0f },
+//        MovieInfo{ "Talking Cat", 9.0f } };
 
     // printing members of different classes
     std::cout << "Members of class Person:\n";
@@ -44,34 +44,52 @@ int main()
     printSeparator();
 
     // checking if classes are registered
-    if (meta::isRegistered<Person>()) {
+    if (meta::isRegistered<Person>())
+    {
         std::cout << "Person class is registered\n";
-		std::cout << "It has " << meta::getMemberCount<Person>() << " members registered.\n";
+        std::cout << "It has " << meta::getMemberCount<Person>()
+                  << " members registered.\n";
     }
 
-    // meta::isRegistered is constexpr, so can be used in enable_if and static_assert!
-    static_assert(meta::isRegistered<Person>(), "Person class is not registered!");
-	static_assert(meta::getMemberCount<Person>() == 4, "Person does not have 4 members registered?");
+	/* meta::isRegistered is constexpr, so can be used in enable_if and
+	 * static_assert! */
+	static_assert(
+		meta::isRegistered<Person>(), "Person class is not registered!");
+	static_assert(
+		meta::getMemberCount<Person>() == 3,
+		"Person does not have 3 members registered?");
+	//	static_assert(
+	//	    meta::getMemberCount<Person>() == 4,
+	//	    "Person does not have 4 members registered?");
 
-    if (!meta::isRegistered<Unregistered>()) {
-        std::cout << "Unregistered class is unregistered\n";
-		std::cout << "It has " << meta::getMemberCount<Unregistered>() << " members registered.\n";
-    }
+	// checking if class has a member
+	static_assert(
+		meta::hasMember<Person>("age"),
+		"Person does not have a member named \"age\"");
+	static_assert(
+		!meta::hasMember<Person>("weight"),
+		"Person does have a member named \"weight\"");
 
-    // checking if class has a member
-    if (meta::hasMember<Person>("age")) {
-        std::cout << "Person has member named 'age'\n";
-    }
+	static_assert(
+		!meta::isRegistered<Unregistered>(), "Unregistered is registered");
+	static_assert(
+		meta::getMemberIndex<Person>("age") == 0,
+		"Member \"age\" does not have index 0.");
+	static_assert(
+		std::get<0>(meta::getMembers<Person>()).getName() == "age",
+		"First field is not named \"age\"");
+
+	meta::doForMember<Person, int>("age", [](const auto &){});
 
     // getting members
-    auto age = meta::getMemberValue<int>(person, "age");
+    auto age = meta::accessMember<int>(person, "age");
     std::cout << "Got person's age: " << age << '\n';
 
-    auto name = meta::getMemberValue<std::string>(person, "name");
+    auto name = meta::accessMember<std::string>(person, "name");
     std::cout << "Got person's name: " << name << '\n';
 
     // setting members
-    meta::setMemberValue<std::string>(person, "name", "Ron Burgundy");
+    meta::accessMember<std::string>(person, "name") = "Ron Burgundy";
     name = meta::getMemberValue<std::string>(person, "name");
     std::cout << "Changed person's name to " << name << '\n';
 

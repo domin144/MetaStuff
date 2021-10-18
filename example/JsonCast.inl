@@ -1,3 +1,5 @@
+#pragma once
+
 #include "JsonCast.h"
 
 template <typename T>
@@ -25,12 +27,7 @@ json serialize(const Class& obj)
     meta::doForAllMembers<Class>(
         [&obj, &value](auto& member)
         {
-            auto& valueName = value[member.getName()];
-            if (member.canGetConstRef()) {
-                valueName = member.get(obj);
-            } else if (member.hasGetter()) {
-                valueName = member.getCopy(obj); // passing copy as const ref, it's okay
-            }
+            value[std::string{member.getName()}] = member.access(obj);
         }
     );
     return value;
@@ -87,25 +84,20 @@ template <typename Class,
     typename>
 void deserialize(Class& obj, const json& object)
 {
-    if (object.is_object()) {
-        meta::doForAllMembers<Class>(
-            [&obj, &object](auto& member)
+    if (object.is_object())
+    {
+        meta::doForAllMembers<Class>([&obj, &object](auto& member) {
+            auto& objectMember = object[std::string{member.getName()}];
+            if (!objectMember.is_null())
             {
-                auto& objName = object[member.getName()];
-                if (!objName.is_null()) {
-                    using MemberT = meta::get_member_type<decltype(member)>;
-                    if (member.hasSetter()) {
-                        member.set(obj, objName.template get<MemberT>());
-                    } else if (member.canGetRef()) {
-                        member.getRef(obj) = objName.template get<MemberT>();
-                    } else {
-                        throw std::runtime_error("Error: can't deserialize member because it's read only");
-                    }
-                }
+                member.access(obj) = objectMember;
             }
-        );
-    } else {
-        throw std::runtime_error("Error: can't deserialize from Json::json to Class.");
+        });
+    }
+    else
+    {
+        throw std::runtime_error(
+            "Error: can't deserialize from Json::json to Class.");
     }
 }
 

@@ -7,6 +7,8 @@ set(exe_name meta-stuff-test)
 
 add_executable(${exe_name})
 
+set_target_properties(${exe_name} PROPERTIES CXX_STANDARD 20)
+
 target_sources(
     ${exe_name}
     PRIVATE

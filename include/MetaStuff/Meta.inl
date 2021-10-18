@@ -1,16 +1,16 @@
 #include <cassert>
-#include <tuple>
 #include <cstring>
+#include <string_view>
+#include <tuple>
 
 #include "Member.h"
 #include "detail/template_helpers.h"
-#include "detail/MetaHolder.h"
 
 namespace meta
 {
 
 template <typename... Args>
-auto members(Args&&... args)
+constexpr auto members(Args&&... args)
 {
     // just this... but may become more complex later, who knows!
     //  Still, better no to expose too much to end-user.
@@ -18,21 +18,15 @@ auto members(Args&&... args)
 }
 
 template <typename Class>
-inline auto registerMembers()
+constexpr auto registerMembers()
 {
-    return std::make_tuple();
-}
-
-template <typename Class>
-constexpr auto registerName()
-{
-    return "";
+    return 0;
 }
 
 template <typename Class>
 constexpr auto getName()
 {
-    return detail::MetaHolder<Class, decltype(registerMembers<Class>())>::name();
+    return registerName<Class>();
 }
 
 template <typename Class>
@@ -42,37 +36,33 @@ constexpr std::size_t getMemberCount()
 }
 
 template <typename Class>
-const auto& getMembers()
+constexpr auto getMembers()
 {
-    return detail::MetaHolder<Class, decltype(registerMembers<Class>())>::members;
+    return registerMembers<Class>();
 }
 
 template <typename Class>
 constexpr bool isRegistered()
 {
-    return !std::is_same<std::tuple<>, decltype(registerMembers<Class>())>::value;
+    return std::is_class_v<decltype(getMembers<Class>())>;
 }
 
-// Check if Class has non-default ctor registered
-template <typename Class>
-constexpr bool ctorRegistered()
+namespace detail {
+template<typename ...Members>
+constexpr bool hasMemberInTuple(const std::string_view name, const std::tuple<Members...> &tuple)
 {
-    return !std::is_same<type_list<>, constructor_arguments<Class>>::value;
+    return std::apply(
+        [&](const Members&... members) {
+            return ((std::string_view(members.getName()) == name) || ...);
+        },
+        tuple);
+}
 }
 
 template <typename Class>
-bool hasMember(const char* name)
+constexpr bool hasMember(const std::string_view name)
 {
-    bool found = false;
-    doForAllMembers<Class>(
-        [&found, &name](const auto& member)
-        {
-            if (!strcmp(name, member.getName())) {
-                found = true;
-            }
-        }
-    );
-    return found;
+    return detail::hasMemberInTuple(name, getMembers<Class>());
 }
 
 template <typename Class, typename F, typename>
@@ -81,52 +71,79 @@ void doForAllMembers(F&& f)
     detail::for_tuple(std::forward<F>(f), getMembers<Class>());
 }
 
-// version for non-registered classes (to generate less template stuff)
-template <typename Class, typename F,
-    typename, typename>
-    void doForAllMembers(F&& /*f*/)
+namespace detail {
+template <typename Tuple, std::size_t... indices>
+constexpr std::size_t getMemberIndexFromTuple(
+    const std::string_view name,
+    const Tuple& tuple,
+    const std::index_sequence<indices...>)
 {
-    // do nothing! Nothing gets generated
+	return (
+		(std::string_view(std::get<indices>(tuple).getName()) == name ? indices
+																	  : 0)
+		+ ...);
+}
+}
+
+template <typename Class>
+constexpr std::size_t getMemberIndex(const std::string_view name)
+{
+	// static_assert (hasMember<Class>(name));
+	return detail::getMemberIndexFromTuple(
+		name,
+		getMembers<Class>(),
+		std::make_index_sequence<getMemberCount<Class>()>());
 }
 
 template <typename Class, typename T, typename F>
-void doForMember(const char* name, F&& f)
+auto doForMember(const std::string_view name, F&& f)
 {
     doForAllMembers<Class>(
-        [&](const auto& member)
-        {
-            if (!strcmp(name, member.getName())) {
-                using MemberT = meta::get_member_type<decltype(member)>;
-                assert((std::is_same<MemberT, T>::value) && "Member doesn't have type T");
-                detail::call_if<std::is_same<MemberT, T>::value>(std::forward<F>(f), member);
+            [&](const auto& member)
+            {
+                if (name == member.getName()) {
+                    using MemberT = meta::get_member_type<decltype(member)>;
+                    assert((std::is_same<MemberT, T>::value) && "Member doesn't have type T");
+                    detail::call_if<std::is_same<MemberT, T>::value>(std::forward<F>(f), member);
+                }
             }
+        );
+}
+
+template <typename T, typename Class>
+T& accessMember(Class& obj, const std::string_view name)
+{
+    T *result = nullptr;
+    doForMember<Class, T>(name,
+        [&obj, &result](const auto& member)
+        {
+            result = &member.access(obj);
+        }
+    );
+    return *result;
+}
+
+template <typename T, typename Class>
+const T& accessMember(const Class& obj, const std::string_view name)
+{
+    return doForMember<Class, T>(name,
+        [&obj](const auto& member)
+        {
+            return member.access(obj);
         }
     );
 }
 
 template <typename T, typename Class>
-T getMemberValue(Class& obj, const char* name)
+T getMemberValue(Class& obj, const std::string_view name)
 {
-    T value;
-    doForMember<Class, T>(name,
-        [&value, &obj](const auto& member)
-        {
-            value = member.getCopy(obj);
-        }
-    );
-    return value;
+    return accessMember<T>(obj, name);
 }
 
-template <typename T, typename Class, typename V,
-    typename>
-void setMemberValue(Class& obj, const char* name, V&& value)
+template <typename T, typename Class, typename V, typename>
+void setMemberValue(Class& obj, const std::string_view name, V&& value)
 {
-    doForMember<Class, T>(name,
-        [&obj, value = std::forward<V>(value)](const auto& member)
-        {
-            member.set(obj, value);
-        }
-    );
+    accessMember<T>(obj, name);
 }
 
 } // end of namespace meta

@@ -12,9 +12,7 @@ target_sources(
         $<BUILD_INTERFACE:
             ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/detail/template_helpers.inl
             ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/detail/template_helpers.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/detail/MetaHolder.h
             ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/Member.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/Member.inl
             ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/Meta.h
             ${CMAKE_CURRENT_SOURCE_DIR}/include/MetaStuff/Meta.inl>)
 target_include_directories(
