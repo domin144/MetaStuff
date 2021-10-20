@@ -82,14 +82,14 @@ int main()
 	meta::doForMember<Person, int>("age", [](const auto &){});
 
     // getting members
-    auto age = meta::accessMember<int>(person, "age");
+    auto age = meta::getMemberValue<int>(person, "age");
     std::cout << "Got person's age: " << age << '\n';
 
-    auto name = meta::accessMember<std::string>(person, "name");
+    auto name = meta::getMemberValue<std::string>(person, "name");
     std::cout << "Got person's name: " << name << '\n';
 
     // setting members
-    meta::accessMember<std::string>(person, "name") = "Ron Burgundy";
+    meta::setMemberValue<std::string>(person, "name", "Ron Burgundy");
     name = meta::getMemberValue<std::string>(person, "name");
     std::cout << "Changed person's name to " << name << '\n';
 

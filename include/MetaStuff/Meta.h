@@ -107,7 +107,7 @@ const T& accessMember(const Class& obj, const std::string_view name);
 
 // Get value of the member named 'name'
 template <typename T, typename Class>
-T getMemberValue(Class& obj, std::string_view);
+T getMemberValue(const Class& obj, std::string_view);
 
 // Set value of the member named 'name'
 template <

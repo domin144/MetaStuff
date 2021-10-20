@@ -27,7 +27,7 @@ json serialize(const Class& obj)
     meta::doForAllMembers<Class>(
         [&obj, &value](auto& member)
         {
-            value[std::string{member.getName()}] = member.access(obj);
+            value[std::string{member.getName()}] = member.get(obj);
         }
     );
     return value;
@@ -90,7 +90,7 @@ void deserialize(Class& obj, const json& object)
             auto& objectMember = object[std::string{member.getName()}];
             if (!objectMember.is_null())
             {
-                member.access(obj) = objectMember;
+                member.set(obj, objectMember);
             }
         });
     }

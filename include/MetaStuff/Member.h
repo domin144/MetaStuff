@@ -177,7 +177,7 @@ constexpr Member<Class, T> member(
 }
 
 template <typename Class, typename T>
-constexpr Member<Class, T> member(
+constexpr ValGetSetMember<Class, T> member(
     const char* name,
     val_getter_func_ptr_t<Class, T> getter,
     val_setter_func_ptr_t<Class, T> setter)
@@ -186,7 +186,7 @@ constexpr Member<Class, T> member(
 }
 
 template <typename Class, typename T>
-constexpr Member<Class, T> member(
+constexpr RefGetSetMember<Class, T> member(
     const char* name,
     ref_getter_func_ptr_t<Class, T> getter,
     ref_setter_func_ptr_t<Class, T> setter)
@@ -195,7 +195,7 @@ constexpr Member<Class, T> member(
 }
 
 template <typename Class, typename T>
-constexpr Member<Class, T> member(
+constexpr NcRefGetMember<Class, T> member(
     const char* name,
     ref_getter_func_ptr_t<Class, T> getter,
     nonconst_ref_getter_func_ptr_t<Class, T> ncGetter)

@@ -98,52 +98,55 @@ constexpr std::size_t getMemberIndex(const std::string_view name)
 template <typename Class, typename T, typename F>
 auto doForMember(const std::string_view name, F&& f)
 {
-    doForAllMembers<Class>(
-            [&](const auto& member)
-            {
-                if (name == member.getName()) {
-                    using MemberT = meta::get_member_type<decltype(member)>;
-                    assert((std::is_same<MemberT, T>::value) && "Member doesn't have type T");
-                    detail::call_if<std::is_same<MemberT, T>::value>(std::forward<F>(f), member);
-                }
-            }
-        );
+	doForAllMembers<Class>([&](const auto& member) {
+		if (name == member.getName())
+		{
+			using MemberT = meta::get_member_type<decltype(member)>;
+			assert(
+				(std::is_same<MemberT, T>::value)
+				&& "Member doesn't have type T");
+			detail::call_if<std::is_same<MemberT, T>::value>(
+				std::forward<F>(f), member);
+		}
+	});
 }
 
 template <typename T, typename Class>
 T& accessMember(Class& obj, const std::string_view name)
 {
-    T *result = nullptr;
-    doForMember<Class, T>(name,
-        [&obj, &result](const auto& member)
-        {
-            result = &member.access(obj);
-        }
-    );
-    return *result;
+	T* result = nullptr;
+	doForMember<Class, T>(name, [&obj, &result](const auto& member) {
+		result = &member.access(obj);
+	});
+	return *result;
 }
 
 template <typename T, typename Class>
 const T& accessMember(const Class& obj, const std::string_view name)
 {
-    return doForMember<Class, T>(name,
-        [&obj](const auto& member)
-        {
-            return member.access(obj);
-        }
-    );
+	const T* result = nullptr;
+	doForMember<Class, T>(name, [&obj, &result](const auto& member) {
+		result = &member.access(obj);
+	});
+	return *result;
 }
 
 template <typename T, typename Class>
-T getMemberValue(Class& obj, const std::string_view name)
+T getMemberValue(const Class& obj, const std::string_view name)
 {
-    return accessMember<T>(obj, name);
+	T result{};
+	doForMember<Class, T>(name, [&obj, &result](const auto& member) {
+		result = member.get(obj);
+	});
+	return result;
 }
 
 template <typename T, typename Class, typename V, typename>
 void setMemberValue(Class& obj, const std::string_view name, V&& value)
 {
-    accessMember<T>(obj, name);
+	doForMember<Class, T>(name, [&obj, &value](const auto& member) {
+		member.set(obj, std::forward<V>(value));
+	});
 }
 
 } // end of namespace meta
